@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/addFinanceFragment">
+    <fragment
+        android:id="@+id/analysisFragment"
+        android:name="com.aysusen.financetracker.view.AnalysisFragment"
+        android:label="fragment_analysis"
+        tools:layout="@layout/fragment_analysis" />
+    <fragment
+        android:id="@+id/extractAccount"
+        android:name="com.aysusen.financetracker.view.ExtractAccountFragment"
+        android:label="fragment_extract_account"
+        tools:layout="@layout/fragment_extract_account" />
+    <fragment
+        android:id="@+id/addFinanceFragment"
+        android:name="com.aysusen.financetracker.view.AddFinanceFragment"
+        android:label="fragment_add_finance"
+        tools:layout="@layout/fragment_add_finance" />
+
+
+</navigation>

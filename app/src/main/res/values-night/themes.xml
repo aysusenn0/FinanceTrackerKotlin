@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Base.Theme.FinanceTracker" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/fab_blue_dark</item>
+    </style>
+
+    <style name="Theme.FinanceTracker" parent="Base.Theme.FinanceTracker" />
+</resources>

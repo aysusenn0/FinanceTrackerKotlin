@@ -1,0 +1,26 @@
+# Genellikle eklenmesi gereken temel Android öğeleri
+/local.properties
+/.gradle
+/build
+/.idea
+/captures
+
+# IDE spesifik dosyalar
+*.iml
+*.iws
+*.ipr
+.idea/workspace.xml
+.idea/tasks.xml
+
+# macOS dosyaları
+.DS_Store
+
+# Windows dosyaları
+Thumbs.db
+
+# Hassas veriler (API anahtarları vb.)
+# secrets.properties dosyanızı buraya ekleyebilirsiniz, örn:
+# /app/secrets.properties
+
+# Eğer signing anahtarınızı buraya koyduysanız:
+# *.keystore
