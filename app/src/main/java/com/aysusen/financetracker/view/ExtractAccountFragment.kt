@@ -1,88 +1,130 @@
 package com.aysusen.financetracker.view
 
-import RetrofitClient
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.aysusen.financetracker.adapter.RecyclerViewAdapter
 import com.aysusen.financetracker.databinding.FragmentExtractAccountBinding
-import com.aysusen.financetracker.model.TransactionResponse
 import com.aysusen.financetracker.viewModel.TransactionViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ExtractAccountFragment : Fragment() {
-    private lateinit var binding: FragmentExtractAccountBinding
-    private lateinit var transactionAdapter: RecyclerViewAdapter
-    private val mainViewModel: TransactionViewModel by activityViewModels()
-    private val _transactionState = MutableStateFlow<TransactionViewModel.TransactionState>(
-        TransactionViewModel.TransactionState.Idle)
-    val transactionState: StateFlow<TransactionViewModel.TransactionState> = _transactionState
-    private val _transactions = MutableStateFlow<List<TransactionResponse>>(emptyList())
-    val transactions: StateFlow<List<TransactionResponse>> = _transactions
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-    }
+    private var _binding: FragmentExtractAccountBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var transactionAdapter: RecyclerViewAdapter
+    private val transactionViewModel: TransactionViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        binding = FragmentExtractAccountBinding.inflate(inflater, container, false)
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        _binding = FragmentExtractAccountBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         setupRecyclerView()
-        observeTransactionList()
-        fetchTransactions()
+        observeTransactions()
+        observeTransactionListState()
+
+        // Fetch transactions
+        transactionViewModel.fetchTransactions()
     }
 
-    fun setupRecyclerView() {
-        transactionAdapter = RecyclerViewAdapter() // Adapter'ınızı oluşturun
+    private fun setupRecyclerView() {
+        transactionAdapter = RecyclerViewAdapter()
         binding.recyclerViewTransactions.apply {
             adapter = transactionAdapter
-            setHasFixedSize(true)
             layoutManager = LinearLayoutManager(requireContext())
+            setHasFixedSize(true)
         }
     }
 
-    fun fetchTransactions() {
+    private fun observeTransactions() {
         viewLifecycleOwner.lifecycleScope.launch {
-            try {
-                val response = RetrofitClient.instance.getTransaction()
-                if (response.isSuccessful) {
-                    _transactionState.value = TransactionViewModel.TransactionState.Success
-                    _transactions.value = response.body() ?: emptyList()
-                } else {
-                    _transactionState.value =
-                        TransactionViewModel.TransactionState.Error("Sunucu hatası: ${response.code()}")
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                transactionViewModel.transactions.collect { transactions ->
+                    transactionAdapter.submitList(transactions)
+                    Log.d("ExtractAccountFragment", "Transactions updated: ${transactions.size}")
+
+                    // Show empty state if needed
+                    if (transactions.isEmpty()) {
+                        // You can add an empty state view
+                        // binding.emptyStateView.visibility = View.VISIBLE
+                        // binding.recyclerViewTransactions.visibility = View.GONE
+                    } else {
+                        // binding.emptyStateView.visibility = View.GONE
+                        // binding.recyclerViewTransactions.visibility = View.VISIBLE
+                    }
                 }
-
-            } catch (e: Exception) {
-                _transactionState.value = TransactionViewModel.TransactionState.Error("Bağlantı hatası: ${e.message}")
             }
         }
     }
 
-    fun observeTransactionList() {
+    private fun observeTransactionListState() {
         viewLifecycleOwner.lifecycleScope.launch {
-            transactions.collect { transactions ->
-                transactionAdapter.submitList(transactions)
-                Log.d(
-                    "ExtractAccountFragment",
-                    "Transaction Listesi Alındı: ${transactions.size} adet"
-                )
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                transactionViewModel.transactionListState.collect { state ->
+                    when (state) {
+                        is TransactionViewModel.TransactionListState.Idle -> {
+                            // Initial state
+                            hideLoading()
+                        }
+                        is TransactionViewModel.TransactionListState.Loading -> {
+                            showLoading()
+                            Log.d("ExtractAccountFragment", "Loading transactions...")
+                        }
+                        is TransactionViewModel.TransactionListState.Success -> {
+                            hideLoading()
+                            Log.d("ExtractAccountFragment", "Transactions loaded: ${state.transactions.size}")
+                        }
+                        is TransactionViewModel.TransactionListState.Error -> {
+                            hideLoading()
+                            showError(state.message)
+                            Log.e("ExtractAccountFragment", "Error: ${state.message}")
+                        }
+                    }
+                }
             }
         }
+    }
+
+    private fun showLoading() {
+        // Show progress bar if you have one
+        // binding.progressBar.visibility = View.VISIBLE
+        // binding.recyclerViewTransactions.visibility = View.GONE
+    }
+
+    private fun hideLoading() {
+        // Hide progress bar
+        // binding.progressBar.visibility = View.GONE
+        // binding.recyclerViewTransactions.visibility = View.VISIBLE
+    }
+
+    private fun showError(message: String) {
+        Toast.makeText(
+            requireContext(),
+            "İşlemler yüklenemedi: $message",
+            Toast.LENGTH_SHORT
+        ).show()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

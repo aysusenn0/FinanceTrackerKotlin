@@ -2,10 +2,13 @@ package com.aysusen.financetracker
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavOptions
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
@@ -16,53 +19,67 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private val viewModel: CurrenciesViewModel by viewModels()
-    //private lateinit var fabAdd: FloatingActionButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
-        viewModel.fetchCurrencies()
-        observeCurrencies_original()
-        observeErrors()
+        setContentView(binding.root)
 
+        setupNavigation()
+        setupObservers()
+
+        // Fetch currencies on startup
+        viewModel.fetchCurrencies()
+    }
+
+    private fun setupNavigation() {
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         val navController = navHostFragment.navController
+
         binding.bottomNavigationView.setupWithNavController(navController)
+
         binding.fabAdd.setOnClickListener {
             val navOptions = NavOptions.Builder()
-                // nav_graph'ın başlangıç hedefine (ExtractAccountFragment) kadar geri dön
-                .setPopUpTo(R.id.extractAccount, false).build()
-
-            // Navigasyonu bu özel kurallarla yap
+                .setPopUpTo(R.id.extractAccount, false)
+                .build()
             navController.navigate(R.id.addFinanceFragment, null, navOptions)
         }
     }
 
-    private fun observeCurrencies_original() {
-        lifecycleScope.launch() {
-            viewModel.currencies.collect { currencyList ->
-                if (currencyList.isNotEmpty()) {
-                    // MainActivity'nin tek işi bu olmalı:
-                    Log.d("MainActivity", "Kurlar başarıyla çekildi: ${currencyList.size}")
-                }
-            }
-        }
-    }
-
-    private fun observeErrors() {
+    private fun setupObservers() {
+        // Observe currency state with lifecycle awareness
         lifecycleScope.launch {
-            viewModel.error.collect { errorMessage ->
-                errorMessage?.let { errorMessage ->
-                    // ŞİMDİLİK: Hatayı Logcat'e basalım
-                    Log.e("MainActivity", "HATA: $errorMessage")
-
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.currencyState.collect { state ->
+                    when (state) {
+                        is CurrenciesViewModel.CurrencyState.Idle -> {
+                            Log.d("MainActivity", "Currency state: Idle")
+                        }
+                        is CurrenciesViewModel.CurrencyState.Loading -> {
+                            Log.d("MainActivity", "Currency state: Loading")
+                            // Optionally show a loading indicator
+                            // binding.progressBar.visibility = View.VISIBLE
+                        }
+                        is CurrenciesViewModel.CurrencyState.Success -> {
+                            Log.d("MainActivity", "Currencies loaded: ${state.currencies.size}")
+                            // Hide loading indicator
+                            // binding.progressBar.visibility = View.GONE
+                        }
+                        is CurrenciesViewModel.CurrencyState.Error -> {
+                            Log.e("MainActivity", "Error loading currencies: ${state.message}")
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Kurlar yüklenemedi: ${state.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // Hide loading indicator
+                            // binding.progressBar.visibility = View.GONE
+                        }
+                    }
                 }
             }
         }
     }
-
 }

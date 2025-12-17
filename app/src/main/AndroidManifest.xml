@@ -13,7 +13,7 @@
         android:roundIcon="@drawable/wallet"
         android:supportsRtl="true"
         android:theme="@style/Theme.FinanceTracker"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true">

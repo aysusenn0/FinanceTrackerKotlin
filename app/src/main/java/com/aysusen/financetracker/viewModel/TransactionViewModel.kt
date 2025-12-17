@@ -1,37 +1,52 @@
 package com.aysusen.financetracker.viewModel
 
 import RetrofitClient
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aysusen.financetracker.model.CurrencyResponse
 import com.aysusen.financetracker.model.TransactionRequest
 import com.aysusen.financetracker.model.TransactionResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 class TransactionViewModel : ViewModel() {
-    sealed class TransactionState() {
-        object Idle : TransactionState() // Boşta
-        object Loading : TransactionState() // Yükleniyor
-        object Success : TransactionState() // Başarılı
-        data class Error(val message: String) : TransactionState() // Hatalı
+
+    sealed class TransactionState {
+        object Idle : TransactionState()
+        object Loading : TransactionState()
+        data class Success(val message: String = "İşlem başarılı") : TransactionState()
+        data class Error(val message: String) : TransactionState()
     }
 
-    private val _currencies = MutableStateFlow<List<CurrencyResponse>>(emptyList())
-    val currencies: StateFlow<List<CurrencyResponse>> = _currencies
+    sealed class TransactionListState {
+        object Idle : TransactionListState()
+        object Loading : TransactionListState()
+        data class Success(val transactions: List<TransactionResponse>) : TransactionListState()
+        data class Error(val message: String) : TransactionListState()
+    }
 
-    // Hata durumlarını yönetmek için bir akış
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error
+    // State for creating/updating transactions
     private val _transactionState = MutableStateFlow<TransactionState>(TransactionState.Idle)
-    val transactionState: StateFlow<TransactionState> = _transactionState
-    private val _transactions = MutableStateFlow<List<TransactionResponse>>(emptyList())
-    val transactions: StateFlow<List<TransactionResponse>> = _transactions
+    val transactionState: StateFlow<TransactionState> = _transactionState.asStateFlow()
 
-    fun createTransaction(title: String, amount: Double, currencyId: Int, transactionTypeId: Int) {
-        // Durumu "Yükleniyor" olarak ayarla
+    // State for fetching transaction list
+    private val _transactionListState = MutableStateFlow<TransactionListState>(TransactionListState.Idle)
+    val transactionListState: StateFlow<TransactionListState> = _transactionListState.asStateFlow()
+
+    // Keep for backward compatibility
+    private val _transactions = MutableStateFlow<List<TransactionResponse>>(emptyList())
+    val transactions: StateFlow<List<TransactionResponse>> = _transactions.asStateFlow()
+
+    fun createTransaction(
+        title: String,
+        amount: Double,
+        currencyId: Int,
+        transactionTypeId: Int
+    ) {
         _transactionState.value = TransactionState.Loading
+        Log.d("TransactionViewModel", "Creating transaction: $title, $amount")
 
         viewModelScope.launch {
             try {
@@ -42,66 +57,59 @@ class TransactionViewModel : ViewModel() {
                     transactionTypeId = transactionTypeId
                 )
 
-                // Retrofit ile API'yi (POST /api/transactions) çağır
                 val response = RetrofitClient.instance.createTransaction(requestBody)
 
                 if (response.isSuccessful) {
-                    // Başarılıysa durumu güncelle
-                    _transactionState.value = TransactionState.Success
+                    _transactionState.value = TransactionState.Success(
+                        "İşlem başarıyla kaydedildi"
+                    )
+                    Log.d("TransactionViewModel", "Transaction created successfully")
+
+                    // Optionally refresh transaction list
+                    fetchTransactions()
                 } else {
-                    // Sunucudan hata geldiyse (400, 500 vb.)
-                    _transactionState.value =
-                        TransactionState.Error("Sunucu hatası: ${response.code()}")
+                    val errorMsg = "Sunucu hatası: ${response.code()}"
+                    _transactionState.value = TransactionState.Error(errorMsg)
+                    Log.e("TransactionViewModel", errorMsg)
                 }
             } catch (e: Exception) {
-                // İnternet yoksa veya başka bir bağlantı hatası
-                _transactionState.value = TransactionState.Error("Bağlantı hatası: ${e.message}")
-            }
-        }
-    }
-
-    fun fetchCurrencies() {
-        // viewModelScope, bu Coroutine'in ViewModel yaşadığı sürece çalışmasını sağlar
-        viewModelScope.launch {
-            try {
-                // 1. Ağ isteğini atıyoruz (RetrofitClient'ı kullanarak)
-                val response = RetrofitClient.instance.getCurrencies()
-
-                // 2. Cevabı kontrol ediyoruz
-                if (response.isSuccessful) {
-                    // Başarılıysa, gelen veriyi StateFlow'a aktarıyoruz
-                    _currencies.value = response.body() ?: emptyList()
-                    _error.value = null // Eski hatayı temizle
-                } else {
-                    // Sunucudan hata geldiyse (örn: 404, 500)
-                    _error.value = "Sunucu hatası: ${response.code()}"
-                }
-            } catch (e: Exception) {
-                // 3. Hata yakalama (örn: İnternet yoksa veya HTTPS/Sertifika hatası)
-                // O DİKKAT dediğim localhost ve HTTPS hatası buraya düşecek.
-                _error.value = "Bağlantı hatası: ${e.message}"
+                val errorMsg = "Bağlantı hatası: ${e.message}"
+                _transactionState.value = TransactionState.Error(errorMsg)
+                Log.e("TransactionViewModel", errorMsg, e)
             }
         }
     }
 
     fun fetchTransactions() {
+        _transactionListState.value = TransactionListState.Loading
+
         viewModelScope.launch {
             try {
                 val response = RetrofitClient.instance.getTransaction()
+
                 if (response.isSuccessful) {
-                    _transactionState.value = TransactionState.Success
-                    _transactions.value = response.body() ?: emptyList()
+                    val transactionList = response.body() ?: emptyList()
+                    _transactions.value = transactionList
+                    _transactionListState.value = TransactionListState.Success(transactionList)
+                    Log.d("TransactionViewModel", "Transactions fetched: ${transactionList.size}")
                 } else {
-                    _transactionState.value =
-                        TransactionState.Error("Sunucu hatası: ${response.code()}")
+                    val errorMsg = "Sunucu hatası: ${response.code()}"
+                    _transactionListState.value = TransactionListState.Error(errorMsg)
+                    Log.e("TransactionViewModel", errorMsg)
                 }
-
             } catch (e: Exception) {
-                _transactionState.value = TransactionState.Error("Bağlantı hatası: ${e.message}")
-
+                val errorMsg = "Bağlantı hatası: ${e.message}"
+                _transactionListState.value = TransactionListState.Error(errorMsg)
+                Log.e("TransactionViewModel", errorMsg, e)
             }
-
         }
     }
 
+    fun resetTransactionState() {
+        _transactionState.value = TransactionState.Idle
+    }
+
+    fun resetTransactionListState() {
+        _transactionListState.value = TransactionListState.Idle
+    }
 }
