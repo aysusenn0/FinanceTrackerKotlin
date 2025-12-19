@@ -56,10 +56,6 @@ class ExtractAccountFragment : Fragment() {
                 transactionViewModel.transactions.collect { transactions ->
                     transactionAdapter.submitList(transactions)
                     Log.d("ExtractAccountFragment", "Transactions updated: ${transactions.size}")
-
-                    if (transactions.isEmpty()) {
-                    } else {
-                    }
                 }
             }
         }
@@ -71,17 +67,13 @@ class ExtractAccountFragment : Fragment() {
                 transactionViewModel.transactionListState.collect { state ->
                     when (state) {
                         is TransactionViewModel.TransactionListState.Idle -> {
-                            // Initial state
-                            hideLoading()
                         }
 
                         is TransactionViewModel.TransactionListState.Loading -> {
-                            showLoading()
                             Log.d("ExtractAccountFragment", "Loading transactions...")
                         }
 
                         is TransactionViewModel.TransactionListState.Success -> {
-                            hideLoading()
                             Log.d(
                                 "ExtractAccountFragment",
                                 "Transactions loaded: ${state.transactions.size}"
@@ -89,7 +81,6 @@ class ExtractAccountFragment : Fragment() {
                         }
 
                         is TransactionViewModel.TransactionListState.Error -> {
-                            hideLoading()
                             showError(state.message)
                             Log.e("ExtractAccountFragment", "Error: ${state.message}")
                         }
@@ -97,12 +88,6 @@ class ExtractAccountFragment : Fragment() {
                 }
             }
         }
-    }
-
-    private fun showLoading() {
-    }
-
-    private fun hideLoading() {
     }
 
     private fun showError(message: String) {
