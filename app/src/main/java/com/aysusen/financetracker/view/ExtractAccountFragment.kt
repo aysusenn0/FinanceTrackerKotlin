@@ -26,9 +26,7 @@ class ExtractAccountFragment : Fragment() {
     private val transactionViewModel: TransactionViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentExtractAccountBinding.inflate(inflater, container, false)
         return binding.root
@@ -40,8 +38,6 @@ class ExtractAccountFragment : Fragment() {
         setupRecyclerView()
         observeTransactions()
         observeTransactionListState()
-
-        // Fetch transactions
         transactionViewModel.fetchTransactions()
     }
 
@@ -61,14 +57,8 @@ class ExtractAccountFragment : Fragment() {
                     transactionAdapter.submitList(transactions)
                     Log.d("ExtractAccountFragment", "Transactions updated: ${transactions.size}")
 
-                    // Show empty state if needed
                     if (transactions.isEmpty()) {
-                        // You can add an empty state view
-                        // binding.emptyStateView.visibility = View.VISIBLE
-                        // binding.recyclerViewTransactions.visibility = View.GONE
                     } else {
-                        // binding.emptyStateView.visibility = View.GONE
-                        // binding.recyclerViewTransactions.visibility = View.VISIBLE
                     }
                 }
             }
@@ -84,14 +74,20 @@ class ExtractAccountFragment : Fragment() {
                             // Initial state
                             hideLoading()
                         }
+
                         is TransactionViewModel.TransactionListState.Loading -> {
                             showLoading()
                             Log.d("ExtractAccountFragment", "Loading transactions...")
                         }
+
                         is TransactionViewModel.TransactionListState.Success -> {
                             hideLoading()
-                            Log.d("ExtractAccountFragment", "Transactions loaded: ${state.transactions.size}")
+                            Log.d(
+                                "ExtractAccountFragment",
+                                "Transactions loaded: ${state.transactions.size}"
+                            )
                         }
+
                         is TransactionViewModel.TransactionListState.Error -> {
                             hideLoading()
                             showError(state.message)
@@ -104,22 +100,14 @@ class ExtractAccountFragment : Fragment() {
     }
 
     private fun showLoading() {
-        // Show progress bar if you have one
-        // binding.progressBar.visibility = View.VISIBLE
-        // binding.recyclerViewTransactions.visibility = View.GONE
     }
 
     private fun hideLoading() {
-        // Hide progress bar
-        // binding.progressBar.visibility = View.GONE
-        // binding.recyclerViewTransactions.visibility = View.VISIBLE
     }
 
     private fun showError(message: String) {
         Toast.makeText(
-            requireContext(),
-            "İşlemler yüklenemedi: $message",
-            Toast.LENGTH_SHORT
+            requireContext(), "İşlemler yüklenemedi: $message", Toast.LENGTH_SHORT
         ).show()
     }
 

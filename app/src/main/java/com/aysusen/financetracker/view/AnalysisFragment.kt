@@ -3,17 +3,17 @@ package com.aysusen.financetracker.view
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.aysusen.financetracker.databinding.FragmentAnalysisBinding
 import com.aysusen.financetracker.model.CurrencyResponse
 import com.aysusen.financetracker.model.TransactionResponse
-import com.aysusen.financetracker.databinding.FragmentAnalysisBinding
 import com.aysusen.financetracker.viewModel.CurrenciesViewModel
 import com.aysusen.financetracker.viewModel.TransactionViewModel
 import com.github.mikephil.charting.charts.PieChart
@@ -36,9 +36,7 @@ class AnalysisFragment : Fragment() {
     private val currenciesViewModel: CurrenciesViewModel by activityViewModels()
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAnalysisBinding.inflate(inflater, container, false)
         pieChart = binding.pieChart
@@ -50,8 +48,6 @@ class AnalysisFragment : Fragment() {
 
         setupChart()
         observeData()
-
-        // Fetch data
         transactionViewModel.fetchTransactions()
         currenciesViewModel.fetchCurrencies()
     }
@@ -73,14 +69,16 @@ class AnalysisFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 // Combine both flows and update chart when both are available
                 combine(
-                    transactionViewModel.transactions,
-                    currenciesViewModel.currencies
+                    transactionViewModel.transactions, currenciesViewModel.currencies
                 ) { transactions, currencies ->
                     Pair(transactions, currencies)
                 }.collect { (transactions, currencies) ->
                     if (transactions.isNotEmpty() && currencies.isNotEmpty()) {
                         updateChart(transactions, currencies)
-                        Log.d("AnalysisFragment", "Chart updated with ${transactions.size} transactions")
+                        Log.d(
+                            "AnalysisFragment",
+                            "Chart updated with ${transactions.size} transactions"
+                        )
                     } else {
                         showEmptyState()
                         Log.d("AnalysisFragment", "Waiting for data...")
@@ -91,17 +89,14 @@ class AnalysisFragment : Fragment() {
     }
 
     private fun updateChart(
-        transactions: List<TransactionResponse>,
-        currencies: List<CurrencyResponse>
+        transactions: List<TransactionResponse>, currencies: List<CurrencyResponse>
     ) {
         // Reset totals
         totalIncomeTRY = 0.0f
         totalExpenseTRY = 0.0f
 
-        // Create rate map for currency conversion
         val rateMap = currencies.associate { it.code to it.rateToTRY }
 
-        // Calculate totals in TRY
         transactions.forEach { transaction ->
             val amount = transaction.amount.toFloat()
             val currencyCode = transaction.currencyCode
@@ -111,11 +106,12 @@ class AnalysisFragment : Fragment() {
             when (transaction.transactionTypeId) {
                 1 -> totalIncomeTRY += amountInTRY // Gelir
                 2 -> totalExpenseTRY += Math.abs(amountInTRY) // Gider
-                else -> Log.e("AnalysisFragment", "Invalid transactionTypeId: ${transaction.transactionTypeId}")
+                else -> Log.e(
+                    "AnalysisFragment",
+                    "Invalid transactionTypeId: ${transaction.transactionTypeId}"
+                )
             }
         }
-
-        // Check if we have any data
         if (totalIncomeTRY == 0.0f && totalExpenseTRY == 0.0f) {
             showEmptyState()
             return
@@ -158,11 +154,6 @@ class AnalysisFragment : Fragment() {
 
         // Calculate balance
         val balance = totalIncomeTRY - totalExpenseTRY
-        val balanceColor = if (balance >= 0) Color.parseColor("#74992c") else Color.parseColor("#CC0000")
-
-        // You can add a balance TextView if needed
-        // binding.textViewBalance.text = "Bakiye:\n${formatter.format(balance)} TRY"
-        // binding.textViewBalance.setTextColor(balanceColor)
     }
 
     private fun showEmptyState() {
@@ -182,7 +173,6 @@ class AnalysisFragment : Fragment() {
             add(Color.parseColor("#CC0000")) // Red for expense
         }
     }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

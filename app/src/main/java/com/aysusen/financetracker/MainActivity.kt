@@ -28,8 +28,6 @@ class MainActivity : AppCompatActivity() {
 
         setupNavigation()
         setupObservers()
-
-        // Fetch currencies on startup
         viewModel.fetchCurrencies()
     }
 
@@ -41,15 +39,12 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNavigationView.setupWithNavController(navController)
 
         binding.fabAdd.setOnClickListener {
-            val navOptions = NavOptions.Builder()
-                .setPopUpTo(R.id.extractAccount, false)
-                .build()
+            val navOptions = NavOptions.Builder().setPopUpTo(R.id.extractAccount, false).build()
             navController.navigate(R.id.addFinanceFragment, null, navOptions)
         }
     }
 
     private fun setupObservers() {
-        // Observe currency state with lifecycle awareness
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.currencyState.collect { state ->
@@ -57,16 +52,16 @@ class MainActivity : AppCompatActivity() {
                         is CurrenciesViewModel.CurrencyState.Idle -> {
                             Log.d("MainActivity", "Currency state: Idle")
                         }
+
                         is CurrenciesViewModel.CurrencyState.Loading -> {
                             Log.d("MainActivity", "Currency state: Loading")
-                            // Optionally show a loading indicator
-                            // binding.progressBar.visibility = View.VISIBLE
                         }
+
                         is CurrenciesViewModel.CurrencyState.Success -> {
                             Log.d("MainActivity", "Currencies loaded: ${state.currencies.size}")
-                            // Hide loading indicator
-                            // binding.progressBar.visibility = View.GONE
+
                         }
+
                         is CurrenciesViewModel.CurrencyState.Error -> {
                             Log.e("MainActivity", "Error loading currencies: ${state.message}")
                             Toast.makeText(
@@ -74,8 +69,6 @@ class MainActivity : AppCompatActivity() {
                                 "Kurlar yüklenemedi: ${state.message}",
                                 Toast.LENGTH_SHORT
                             ).show()
-                            // Hide loading indicator
-                            // binding.progressBar.visibility = View.GONE
                         }
                     }
                 }

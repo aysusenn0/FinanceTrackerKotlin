@@ -17,13 +17,9 @@ class AddFinanceFragment : Fragment(R.layout.fragment_add_finance) {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        //binding işlemleri
-
         binding = FragmentAddFinanceBinding.bind(view)
         tabLayout = binding.tabLayout
         viewPager2 = binding.viewPager
-
-        //viewpager işlemleri
         val adapter = ViewPagerAdapter(this)
 
         viewPager2.adapter = adapter

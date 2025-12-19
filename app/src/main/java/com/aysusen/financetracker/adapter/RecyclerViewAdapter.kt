@@ -60,7 +60,6 @@ class RecyclerViewAdapter :
                 textViewAmount.text = "-$amountText"
                 textViewAmount.setTextColor(binding.root.context.getColor(android.R.color.holo_red_dark))
             } else {
-                // Toast.makeText("hata",this, Toast.LENGTH_SHORT).show()
             }
         }
     }
