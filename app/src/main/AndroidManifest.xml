@@ -12,7 +12,8 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@drawable/wallet"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FinanceTracker">
+        android:theme="@style/Theme.FinanceTracker"
+        android:usesCleartextTraffic="false">
         <activity
             android:name=".MainActivity"
             android:exported="true">
