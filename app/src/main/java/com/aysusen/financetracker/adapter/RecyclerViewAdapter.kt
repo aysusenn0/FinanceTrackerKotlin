@@ -2,12 +2,10 @@ package com.aysusen.financetracker.adapter
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
-import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.aysusen.financetracker.model.TransactionResponse
 import com.aysusen.financetracker.databinding.ItemTransactionBinding
+import com.aysusen.financetracker.model.TransactionResponse
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -59,7 +57,6 @@ class RecyclerViewAdapter :
             } else if (transaction.transactionTypeId == 2) {
                 textViewAmount.text = "-$amountText"
                 textViewAmount.setTextColor(binding.root.context.getColor(android.R.color.holo_red_dark))
-            } else {
             }
         }
     }

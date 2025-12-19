@@ -67,13 +67,17 @@ class ExtractAccountFragment : Fragment() {
                 transactionViewModel.transactionListState.collect { state ->
                     when (state) {
                         is TransactionViewModel.TransactionListState.Idle -> {
+                            hideLoading()
+                            Log.d("ExtractAccountFragment", "Idle state")
                         }
 
                         is TransactionViewModel.TransactionListState.Loading -> {
+                            showLoading()
                             Log.d("ExtractAccountFragment", "Loading transactions...")
                         }
 
                         is TransactionViewModel.TransactionListState.Success -> {
+                            hideLoading()
                             Log.d(
                                 "ExtractAccountFragment",
                                 "Transactions loaded: ${state.transactions.size}"
@@ -81,6 +85,7 @@ class ExtractAccountFragment : Fragment() {
                         }
 
                         is TransactionViewModel.TransactionListState.Error -> {
+                            hideLoading()
                             showError(state.message)
                             Log.e("ExtractAccountFragment", "Error: ${state.message}")
                         }
@@ -88,6 +93,16 @@ class ExtractAccountFragment : Fragment() {
                 }
             }
         }
+    }
+
+    private fun showLoading() {
+        binding.progressBar.visibility = View.VISIBLE
+        binding.recyclerViewTransactions.visibility = View.GONE
+    }
+
+    private fun hideLoading() {
+        binding.progressBar.visibility = View.GONE
+        binding.recyclerViewTransactions.visibility = View.VISIBLE
     }
 
     private fun showError(message: String) {

@@ -67,7 +67,6 @@ class AnalysisFragment : Fragment() {
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                // Combine both flows and update chart when both are available
                 combine(
                     transactionViewModel.transactions, currenciesViewModel.currencies
                 ) { transactions, currencies ->
@@ -91,7 +90,6 @@ class AnalysisFragment : Fragment() {
     private fun updateChart(
         transactions: List<TransactionResponse>, currencies: List<CurrencyResponse>
     ) {
-        // Reset totals
         totalIncomeTRY = 0.0f
         totalExpenseTRY = 0.0f
 
@@ -117,7 +115,6 @@ class AnalysisFragment : Fragment() {
             return
         }
 
-        // Create pie chart entries
         val entries = ArrayList<PieEntry>()
         if (totalIncomeTRY > 0) {
             entries.add(PieEntry(totalIncomeTRY, "Gelir"))
@@ -140,7 +137,6 @@ class AnalysisFragment : Fragment() {
         pieChart.notifyDataSetChanged()
         pieChart.invalidate()
 
-        // Update text views
         updateSummaryTexts()
     }
 
@@ -151,9 +147,6 @@ class AnalysisFragment : Fragment() {
 
         binding.textViewIncome.text = "Gelir:\n${formatter.format(totalIncomeTRY)} TRY"
         binding.textViewExpense.text = "Gider:\n${formatter.format(totalExpenseTRY)} TRY"
-
-        // Calculate balance
-        val balance = totalIncomeTRY - totalExpenseTRY
     }
 
     private fun showEmptyState() {
@@ -173,6 +166,7 @@ class AnalysisFragment : Fragment() {
             add(Color.parseColor("#CC0000")) // Red for expense
         }
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
