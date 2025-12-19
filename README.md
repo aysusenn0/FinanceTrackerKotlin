@@ -24,7 +24,7 @@ This Android app requires a backend API to function. You need both components ru
 
 ### Step 1: Start Backend API
 
-1. Clone the backend repository: [financetrackerbacke](https://github.com/aysusen/financetrackerbacke)
+1. Clone the backend repository: [financetrackerbacke](https://github.com/aysusenn0/financetrackerbacke)
 2. Open the backend project in Visual Studio 2022
 3. Ensure SQL Server and Redis are running
 4. Start the API project
