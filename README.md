@@ -1,42 +1,63 @@
-# Finance Tracker (Android Bütçe Takip Uygulaması)
+# Finance Tracker - Android App
 
-[cite_start]Bu proje, **Finance Tracker** adlı çoklu para birimli bütçe yönetim sisteminin [cite: 1, 4] Android (Kotlin) istemci uygulamasıdır.
+Multi-currency budget tracking application built with Kotlin and MVVM architecture.
 
-Uygulama, gelir ve giderleri takip etmek, güncel kurları görmek ve bütçe özeti almak için merkezi bir **.NET 8 Backend API**'sine bağlanacak şekilde tasarlanmıştır.
+## Tech Stack
 
-## 📱 Mimari ve Kullanılan Teknolojiler
+- **Language:** Kotlin
+- **Architecture:** MVVM (Model-View-ViewModel)
+- **Async:** Coroutines & StateFlow
+- **Networking:** Retrofit & OkHttp
+- **JSON Parser:** Gson
+- **UI:** ViewBinding & RecyclerView
 
-Bu Android uygulaması, modern ve sürdürülebilir bir yapı için aşağıdaki teknolojileri kullanır:
+## Prerequisites
 
-* **Dil:** Kotlin
-* **Asenkron:** Kotlin Coroutines (Korutinler)
-* **Mimari:** MVVM (Model-View-ViewModel)
-* **UI Yönetimi:** ViewModel ve StateFlow
-* **Ağ (Networking):** Retrofit & OkHttp (Backend API'si ile konuşmak için)
-* **JSON Çözümleme:** Gson (veya Moshi)
+This Android app requires a backend API to function. You need both components running:
 
-## ⚙️ Projenin Çalıştırılması (Çok Önemli)
+**Backend Requirements:**
+- .NET 8 Web API
+- MS SQL Server (Express)
+- Redis Cache
 
-Bu uygulama tek başına çalışmaz. Bir backend (sunucu) uygulamasına bağlanması gerekir. Projeyi tam fonksiyonlu çalıştırmak için iki bileşenin de ayakta olması gerekir.
+## Setup & Run
 
-### 1. Adım: Backend (.NET 8 API)
+### Step 1: Start Backend API
 
-[cite_start]Bu projenin ihtiyaç duyduğu API, .NET 8, MS SQL Server [cite: 50] [cite_start]ve Redis [cite: 64] kullanan ayrı bir projedir.
+1. Open the backend project in Visual Studio 2022
+2. Ensure SQL Server and Redis are running
+3. Start the API project
+4. Verify it's running at `http://localhost:5000/swagger`
 
-1.  Backend projesini Visual Studio 2022'de açın.
-2.  [cite_start]Gerekli veritabanı (SQL Express) [cite: 50] [cite_start]ve cache (Redis) [cite: 64] servislerinin çalıştığından emin olun.
-3.  API projesini başlatın.
-4.  Tarayıcınızda `http://localhost:5000/swagger` veya `https://localhost:5001/swagger` adresinin çalıştığını doğrulayın.
+### Step 2: Configure Android App
 
-### 2. Adım: Android Uygulaması (Bu Proje)
+1. Open this project in Android Studio
+2. Update `BASE_URL` in `network/RetrofitClient.kt`:
 
-Backend API'si ayaktayken:
+```kotlin
+// For Android Emulator
+private const val BASE_URL = "http://10.0.2.2:5000/"
 
-1.  Bu projeyi Android Studio'da açın.
-2.  `network/RetrofitClient.kt` dosyasındaki `BASE_URL` sabitini kontrol edin.
-3.  **Emülatör Kullanıyorsanız:** Emülatörler `localhost`'a `10.0.2.2` IP'si üzerinden erişir. `BASE_URL` şu şekilde olmalıdır:
-    ```kotlin
-    private const val BASE_URL = "[http://10.0.2.2:5000/](http://10.0.2.2:5000/)"
-    ```
-    *(Not: `http` (güvenli olmayan) bağlantı için `AndroidManifest.xml` dosyasında `usesCleartextTraffic="true"` izni ayarlanmıştır.)*
-4.  Uygulamayı çalıştırın. Artık API'den veri çekebiliyor olmalıdır.
+// For Physical Device (use your PC's IP)
+private const val BASE_URL = "http://192.168.1.XXX:5000/"
+```
+
+3. Run the app on your emulator or device
+
+## Network Security
+
+The app uses `network_security_config.xml` to allow HTTP connections in development:
+- HTTP is enabled only for localhost/emulator
+- All other domains require HTTPS
+
+## Features
+
+- Track income and expenses
+- Multi-currency support
+- Real-time exchange rates
+- Transaction history
+- Budget overview
+
+## License
+
+This project is developed for educational purposes.
