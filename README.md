@@ -24,10 +24,11 @@ This Android app requires a backend API to function. You need both components ru
 
 ### Step 1: Start Backend API
 
-1. Open the backend project in Visual Studio 2022
-2. Ensure SQL Server and Redis are running
-3. Start the API project
-4. Verify it's running at `http://localhost:5000/swagger`
+1. Clone the backend repository: [financetrackerbacke](https://github.com/aysusen/financetrackerbacke)
+2. Open the backend project in Visual Studio 2022
+3. Ensure SQL Server and Redis are running
+4. Start the API project
+5. Verify it's running at `http://localhost:5210/swagger`
 
 ### Step 2: Configure Android App
 
@@ -36,10 +37,10 @@ This Android app requires a backend API to function. You need both components ru
 
 ```kotlin
 // For Android Emulator
-private const val BASE_URL = "http://10.0.2.2:5000/"
+private const val BASE_URL = "http://10.0.2.2:5210/"
 
 // For Physical Device (use your PC's IP)
-private const val BASE_URL = "http://192.168.1.XXX:5000/"
+private const val BASE_URL = "http://192.168.1.XXX:5210/"
 ```
 
 3. Run the app on your emulator or device
